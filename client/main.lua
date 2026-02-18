@@ -1,9 +1,11 @@
+
 local lib = exports.ox_lib
 local dvCooldown = false
-local cooldownTime = 5
+local Config = require 'client.config'
+
 
 RegisterCommand('dv', function()
-    if dvCooldown then
+    if Config.EnableCooldown and dvCooldown then
         lib:notify({
             id = 'dv_cooldown',
             title = 'Cooldown Active',
@@ -25,9 +27,8 @@ RegisterCommand('dv', function()
     local vehicle = GetVehiclePedIsIn(playerPed, false)
     if vehicle == 0 then
         local pos = GetEntityCoords(playerPed)
-        local radius = 5.0
         local vehicles = GetGamePool('CVehicle')
-        local closestVeh, minDist = nil, radius
+        local closestVeh, minDist = nil, Config.DeleteRadius or 5.0
         for _, veh in ipairs(vehicles) do
             local vehPos = GetEntityCoords(veh)
             local dist = #(pos - vehPos)
@@ -123,10 +124,12 @@ RegisterCommand('dv', function()
         })
     end
 
-    dvCooldown = true
-    SetTimeout(cooldownTime * 1000, function()
-        dvCooldown = false
-    end)
+    if Config.EnableCooldown then
+        dvCooldown = true
+        SetTimeout((Config.CooldownTime or 5) * 1000, function()
+            dvCooldown = false
+        end)
+    end
 end, false)
 
 exports.ox_target:addGlobalVehicle({
